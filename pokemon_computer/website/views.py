@@ -16,10 +16,12 @@ def home():
         region = request.form.get('region')
         type1 = request.form.get('type1')
         type2 = request.form.get('type2')
+        
+        existing_pokemon = Pokemon.query.filter_by(poke_id=poke_id).first()
 
-        if poke_id:
-            pokemon = Pokemon.query.get(poke_id)
-            if pokemon and pokemon.user_id == current_user.id:
+        if existing_pokemon:
+            pokemon = existing_pokemon
+            if pokemon.user_id == current_user.id:
                 pokemon.Name = name
                 pokemon.region = region
                 pokemon.type1 = type1
@@ -30,7 +32,7 @@ def home():
             if len(name) < 1:
                 flash('Pokemon name is too short!', category='error')
             else:
-                new_pokemon = Pokemon(Name=name, region=region, type1=type1, type2=type2, user_id=current_user.id)
+                new_pokemon = Pokemon(poke_id=poke_id,Name=name, region=region, type1=type1, type2=type2, user_id=current_user.id)
                 db.session.add(new_pokemon)
                 db.session.commit()
                 flash('Pokemon added!', category='success')
@@ -50,16 +52,3 @@ def delete_pokemon():
             db.session.commit()
     return jsonify({})
 
-@views.route('/get-pokemon/<int:poke_id>', methods=['GET'])
-@login_required
-def get_pokemon(poke_id):
-    pokemon = Pokemon.query.get(poke_id)
-    if pokemon and pokemon.user_id == current_user.id:
-        return jsonify({
-            'poke_id': pokemon.poke_id,
-            'Name': pokemon.Name,
-            'region': pokemon.region,
-            'type1': pokemon.type1,
-            'type2': pokemon.type2
-        })
-    return jsonify({'error': 'Unauthorized or Pokémon not found'}), 403
