@@ -16,3 +16,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     pokemon = db.relationship('Pokemon')
+    
+class Region(db.Model, UserMixin):
+    Region_name = db.Column(db.String(150), primary_key=True)
+    X_factor = db.Column(db.String(150))
