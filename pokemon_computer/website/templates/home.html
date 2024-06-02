@@ -1,28 +1,96 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
+
 <h1 align="center">Pokemon</h1>
-<ul class="list-group list-group-flush" id="pokemon">
-  {% for pokemon in user.pokemon %}
-  <li class="list-group-item">
-    <strong>{{ pokemon.Name }}</strong> - {{pokemon.region}} ({{ pokemon.type1 }}{{ ', ' + pokemon.type2 if pokemon.type2 else '' }})
-    <button type="button" class="btn btn-primary" onclick="editPokemon({{pokemon.poke_id}})">Edit</button>
-    <button type="button" class="close" onClick="deletePokemon({{ pokemon.poke_id }})">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </li>
-  {% endfor %}
-</ul>
-<form method="POST">
-  <input type="text" name="name" placeholder="Name" class="form-control" required />
-  <input type="text" name="region" placeholder="Region" class="form-control" required />
-  <input type="text" name="type1" placeholder="Type 1" class="form-control" required />
-  <input type="text" name="type2" placeholder="Type 2" class="form-control" />
-  <br />
-  <div align="center">
-    <button type="submit" class="btn btn-primary">Add Pokemon</button>
+
+<div class="d-flex justify-content-end mb-2">
+  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addPokemonModal">
+    Add Pokémon
+  </button>
+  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#editPokemonModal">
+    Edit
+  </button>
+</div>
+
+<table class="table" id="pokemon">
+  <thead>
+    <tr>
+      <th scope="col">Pokemon_id</th>
+      <th scope="col">Name</th>
+      <th scope="col">Region</th>
+      <th scope="col">Type</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pokemon in user.pokemon %}
+    <tr>
+      <td><strong>{{pokemon.poke_id}}</strong></td>
+      <td><strong>{{ pokemon.Name }}</strong></td>
+      <td>{{ pokemon.region }}</td>
+      <td>{{ pokemon.type1 }}{{ ', ' + pokemon.type2 if pokemon.type2 else '' }}</td>
+      <td>
+        <button type="button" class="btn btn-danger btn-sm" onClick="deletePokemon({{ pokemon.poke_id }})">Delete</button>
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="modal fade" id="addPokemonModal" tabindex="-1" aria-labelledby="addPokemonModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addPokemonModalLabel">Add Pokémon</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="POST">
+          <input type="text" name="poke_id" placeholder="Pokemon ID" class="form-control" required />
+          <input type="text" name="name" placeholder="Name" class="form-control" required />
+          <input type="text" name="region" placeholder="Region" class="form-control" required />
+          <input type="text" name="type1" placeholder="Type 1" class="form-control" required />
+          <input type="text" name="type2" placeholder="Type 2" class="form-control" />
+          <br />
+          <div align="center">
+            <button type="submit" class="btn btn-primary">Add Pokémon</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-</form>
+</div>
+
+<div class="modal fade" id="editPokemonModal" tabindex="-1" aria-labelledby="editPokemonModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editPokemonModalLabel">Edit Pokémon</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" id="editPokemonForm">
+          <input type="text" name="poke_id" placeholder="Pokemon ID" class="form-control" required />
+          <input type="text" id="editName" name="name" placeholder="Name" class="form-control" required />
+          <input type="text" id="editRegion" name="region" placeholder="Region" class="form-control" required />
+          <input type="text" id="editType1" name="type1" placeholder="Type 1" class="form-control" required />
+          <input type="text" id="editType2" name="type2" placeholder="Type 2" class="form-control" />
+          <br />
+          <div align="center">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function deletePokemon(pokemonId) {
     fetch('/delete-pokemon', {
@@ -35,17 +103,37 @@
       window.location.href = "/";
     });
   }
+
   function editPokemon(pokemonId) {
     fetch(`/get-pokemon/${pokemonId}`)
     .then(response => response.json())
     .then(data => {
-      document.getElementById('poke_id').value = data.poke_id;
-      document.getElementById('name').value = data.Name;
-      document.getElementById('region').value = data.region;
-      document.getElementById('type1').value = data.type1;
-      document.getElementById('type2').value = data.type2;
-      
+      // Populate the form fields with the Pokémon data
+      document.getElementById('editPokeId').value = data.poke_id;
+      document.getElementById('editName').value = data.Name;
+      document.getElementById('editRegion').value = data.region;
+      document.getElementById('editType1').value = data.type1;
+      document.getElementById('editType2').value = data.type2;
+      // Show the edit modal
+      $('#editPokemonModal').modal('show');
     });
   }
+  
+  
 </script>
 {% endblock %}
+
+{% block javascript %}
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
